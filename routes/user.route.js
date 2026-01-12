@@ -1,7 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const userRouter = express.Router();
 const bcrypt = require('bcrypt');
 const Joi = require('joi');
+const jwt = require('jsonwebtoken');
+
 const User = require('../models/user.model');
 
 const createUserSchema = Joi.object({
@@ -37,7 +40,13 @@ userRouter.post('/', async (req, res) => {
 
     await newUser.save();
 
-    res.status(201).json({ message: 'User created successfully', user: newUser });
+    const token = jwt.sign(
+        { _id: newUser._id, name: newUser.name},
+        process.env.JWT_KEY,
+        { expiresIn: '1h'}
+    );
+
+    res.status(201).json({ message: 'User created successfully', user: newUser, token: token });
 });
 
 module.exports = userRouter;
