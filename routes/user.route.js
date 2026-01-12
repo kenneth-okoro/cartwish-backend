@@ -6,6 +6,7 @@ const Joi = require('joi');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user.model');
+const authMiddleware = require('../middlewares/auth.middleware');
 
 const createUserSchema = Joi.object({
     name: Joi.string().min(3).required(),
@@ -62,6 +63,11 @@ userRouter.post('/login', async (req, res) => {
     const token = generateToken({ _id: user._id, name: user.name })
 
     res.status(200).json({ message: 'Login successful', user: user, token: token });
+});
+
+userRouter.get('/', authMiddleware, async (req, res) => {
+    const users = await User.find().select('-password');
+    res.status(200).json({ users: users });
 });
 
 const generateToken = (data) => {
